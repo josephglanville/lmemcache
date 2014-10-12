@@ -65,6 +65,7 @@ executable hmemcache
                      , bytestring >=0.10
                      , cmdargs >= 0.10
                      , network >= 2.4
+                     , word8 >= 0.1
   
   -- Directories containing source files.
   -- hs-source-dirs:      

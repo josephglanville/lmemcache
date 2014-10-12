@@ -9,13 +9,18 @@ import Network.Socket.ByteString
 import Control.Concurrent (forkIO)
 import qualified Data.ByteString.Char8 as B8
 import HMemcache.Protocol
-import qualified Data.Attoparsec.ByteString.Char8 as Atto
+import qualified Data.Attoparsec.ByteString.Char8 as A
+import Debug.Trace
+import Data.List
+import Control.Applicative
 
 data ServerArgs = ServerArgs { port :: Int } deriving (Show, Data, Typeable)
 
 server :: ServerArgs -> IO ()
 server svrargs = withSocketsDo $ do
                    sock <- socket AF_INET Stream defaultProtocol
+                   let opts = [(ReuseAddr, 1)]
+                   foldr (>>) (return ()) (uncurry (setSocketOption sock) <$> opts)
                    bindSocket sock $ SockAddrInet (fromIntegral $ port svrargs) 0
                    listen sock 5
                    sockHandler sock
@@ -29,24 +34,28 @@ sockHandler sock = do
 
 receiveMessage :: B8.ByteString -> Socket -> IO ()
 receiveMessage res sock = do
-  ParseResult cmd rem <- messageParser res sock
-  putStrLn "Got a cmd"
-  receiveMessage rem sock
+  maybeRes <- messageParser res sock
+  case maybeRes of
+    Just (ParseResult cmd rem) -> do
+      putStrLn (show cmd ++ " " ++ show rem)
+      receiveMessage rem sock
+    Nothing -> do
+      sClose sock
+      putStrLn "Client disconnected!"
 
-data ParseResult = ParseResult { command :: Command, remainder :: B8.ByteString }
+data ParseResult = ParseResult { command :: Command, remainder :: B8.ByteString } deriving (Show)
 
-messageParser :: B8.ByteString -> Socket -> IO ParseResult
-messageParser s sock = messageParser_ (Atto.parse parseCommand s) sock
+fmtParseError :: B8.ByteString -> [String] -> String -> String
+fmtParseError remainder tokens message = concat $ intersperse "\n" [show remainder, message]
 
-messageParser_ :: Atto.Result Command -> Socket -> IO ParseResult
-messageParser_ r sock = do case r of
-                             Atto.Done rem res -> return $ ParseResult res rem
-                             Atto.Fail rem _ _ -> undefined
-                             Atto.Partial cont -> recv sock 10 >>= doFeed
-                               where doFeed b = messageParser_ (Atto.feed (Atto.Partial cont) b) sock
+messageParser :: B8.ByteString -> Socket -> IO (Maybe ParseResult)
+messageParser s sock = messageParser_ (A.parse parseCommand s) sock
 
-
---  B8.putStrLn msg
---  if msg == B8.pack "q" || B8.null msg
---  then sClose sockh >> putStrLn "Client disconnected"
---  else receiveMessage sockh
+messageParser_ :: A.Result Command -> Socket -> IO (Maybe ParseResult)
+messageParser_ (A.Done rem res) sock = return . Just $ ParseResult res rem
+messageParser_ (A.Fail rem t m) sock = putStrLn (fmtParseError rem t m) >> messageParser B8.empty sock
+messageParser_ (A.Partial cont) sock = do msg <- recv sock 512
+                                          if B8.null msg
+                                          then return Nothing
+                                          else doFeed msg
+                                            where doFeed b = messageParser_ (A.feed (A.Partial cont) b) sock
