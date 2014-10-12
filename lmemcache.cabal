@@ -2,7 +2,7 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 -- The name of the package.
-name:                hmemcache
+name:                lmemcache
 
 -- The package version.  See the Haskell package versioning policy (PVP) 
 -- for standards guiding when and how versions should be incremented.
@@ -19,7 +19,7 @@ synopsis:            Memcache server implementation in Haskell
 -- description:         
 
 -- URL for the project homepage or repository.
-homepage:            http://github.com/josephglanville/hmemcache
+homepage:            http://github.com/josephglanville/lmemcache
 
 -- The license under which the package is released.
 license:             MIT

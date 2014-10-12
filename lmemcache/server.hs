@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 
-module HMemcache.Server (ServerArgs(..), server) where
+module LMemcache.Server (ServerArgs(..), server) where
 
 import Data.Typeable
 import Data.Data
@@ -8,7 +8,7 @@ import Network.Socket hiding (send, recv)
 import Network.Socket.ByteString
 import Control.Concurrent (forkIO)
 import qualified Data.ByteString.Char8 as B8
-import HMemcache.Protocol
+import LMemcache.Protocol
 import qualified Data.Attoparsec.ByteString.Char8 as A
 import Debug.Trace
 import Data.List

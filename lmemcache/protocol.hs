@@ -1,4 +1,4 @@
-module HMemcache.Protocol (Command(Get, Set), parseCommand) where
+module LMemcache.Protocol (Command(Get, Set), parseCommand) where
 
 import qualified Data.Attoparsec.ByteString.Char8 as A
 import Data.ByteString.Char8 hiding (putStrLn)
