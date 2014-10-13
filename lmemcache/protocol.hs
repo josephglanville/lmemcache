@@ -10,8 +10,9 @@ import Text.Read
 
 type ExpTime = Int
 type StorageFlags = Word32
-type DataBlock = ByteString
-data StorageCommandArgs = StorageCommandArgs { key :: ByteString,
+type Key = ByteString
+type Value = ByteString
+data StorageCommandArgs = StorageCommandArgs { key :: Key,
                                                flags :: StorageFlags,
                                                exptime :: ExpTime,
                                                bytes :: Int,
@@ -19,7 +20,7 @@ data StorageCommandArgs = StorageCommandArgs { key :: ByteString,
 
 data RetrievalCommandArgs = RetrievalCommandArgs { keys :: [ByteString] } deriving (Show)
 
-data Command = Set StorageCommandArgs DataBlock | Get RetrievalCommandArgs | Gets RetrievalCommandArgs deriving (Show)
+data Command = Set StorageCommandArgs Value | Get RetrievalCommandArgs | Gets RetrievalCommandArgs deriving (Show)
 
 -- TODO(jpg): attoparsec has fast implementations of isSpace and friends
 parseWord = A.takeWhile1 $ \c -> not $ isControl c || isSpace c
@@ -55,11 +56,11 @@ parseCommand = do
     "get" -> Get <$> parseRetrievalCommandArgs
     "gets" -> Gets <$> parseRetrievalCommandArgs
     "set" -> do storeargs <- parseStorageCommandArgs
-                Set storeargs <$> parseDataBlock (bytes storeargs)
+                Set storeargs <$> parseValue (bytes storeargs)
     _ -> fail "Unknown command"
 
-parseDataBlock :: Int -> A.Parser DataBlock
-parseDataBlock b = do
+parseValue :: Int -> A.Parser Value
+parseValue b = do
   datablock <- A.take b
   newline
   return datablock
