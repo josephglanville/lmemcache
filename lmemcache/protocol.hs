@@ -1,5 +1,6 @@
-module LMemcache.Protocol (Command(Get, Set), parseCommand) where
+module LMemcache.Protocol (parseCommand) where
 
+import LMemcache.Commands
 import qualified Data.Attoparsec.ByteString.Char8 as A
 import Data.ByteString.Char8 hiding (putStrLn)
 import Data.Word
@@ -7,20 +8,6 @@ import Control.Applicative
 import Data.Char8
 import Debug.Trace
 import Text.Read
-
-type ExpTime = Int
-type StorageFlags = Word32
-type Key = ByteString
-type Value = ByteString
-data StorageCommandArgs = StorageCommandArgs { key :: Key,
-                                               flags :: StorageFlags,
-                                               exptime :: ExpTime,
-                                               bytes :: Int,
-                                               noreply :: Bool } deriving (Show)
-
-data RetrievalCommandArgs = RetrievalCommandArgs { keys :: [ByteString] } deriving (Show)
-
-data Command = Set StorageCommandArgs Value | Get RetrievalCommandArgs | Gets RetrievalCommandArgs deriving (Show)
 
 -- TODO(jpg): attoparsec has fast implementations of isSpace and friends
 parseWord = A.takeWhile1 $ \c -> not $ isControl c || isSpace c
