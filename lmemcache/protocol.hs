@@ -16,7 +16,6 @@ parseNumber = readMaybe <$> A.many1 A.digit
 
 newline = A.char '\r' >> A.char '\n'
 
--- TODO(jpg): read is unsafe
 parseStorageCommandArgs :: A.Parser StorageCommandArgs
 parseStorageCommandArgs = do
   key <- parseWord

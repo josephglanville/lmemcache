@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveDataTypeable #-}
+
 module LMemcache.Commands (
   Command(Get, Gets, Set),
   StorageFlags, ExpTime,
@@ -8,6 +10,7 @@ module LMemcache.Commands (
 
 import Data.ByteString.Char8
 import Data.Word
+import Data.Typeable
 
 type ExpTime = Int
 type StorageFlags = Word32
@@ -21,4 +24,4 @@ data StorageCommandArgs = StorageCommandArgs { key :: Key,
 
 data RetrievalCommandArgs = RetrievalCommandArgs { keys :: [ByteString] } deriving (Show)
 
-data Command = Set StorageCommandArgs Value | Get RetrievalCommandArgs | Gets RetrievalCommandArgs deriving (Show)
+data Command = Set StorageCommandArgs Value | Get RetrievalCommandArgs | Gets RetrievalCommandArgs deriving (Show, Typeable)
