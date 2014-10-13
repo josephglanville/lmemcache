@@ -1,17 +1,13 @@
-module LMemcache.Commands
-(
-Command(Get, Gets, Set),
-StorageFlags,
-ExpTime,
-Key,
-Value,
-StorageCommandArgs(..),
-RetrievalCommandArgs(..)
+module LMemcache.Commands (
+  Command(Get, Gets, Set),
+  StorageFlags, ExpTime,
+  Key, Value,
+  StorageCommandArgs(..),
+  RetrievalCommandArgs(..)
 ) where
 
 import Data.ByteString.Char8
 import Data.Word
--- import Data.Char8
 
 type ExpTime = Int
 type StorageFlags = Word32
