@@ -1,8 +1,8 @@
 {-
-Copyright (c) 2014 Joseph Glanville <jgp@jpd.id.au>
+Copyright (c) 2014 Joseph Glanville <jgp@jpg.id.au>
                    Duncan Burke <duncankburke@gmail.com>
 
-This software may be modifid and distributed under the terms
+This software may be modified and distributed under the terms
 of the MIT license. See the LICENSE file for details.
 -}
 
