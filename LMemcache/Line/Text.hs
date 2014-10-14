@@ -15,16 +15,25 @@ of the MIT license. See the LICENSE file for details.
    stability   : experimental
 -}
 
-module LMemcache.Protocol (parseCommand) where
+module LMemcache.Line.Text (TextProtocol(TextProtocol), parseCommand) where
 
-import LMemcache.Commands
+import           Control.Applicative
 import qualified Data.Attoparsec.ByteString.Char8 as A
-import Data.ByteString.Char8 hiding (putStrLn)
-import Data.Word
-import Control.Applicative
-import Data.Char8
-import Debug.Trace
-import Text.Read
+import           Data.ByteString.Char8            hiding (putStrLn)
+import           Data.Char8
+import           Data.Word
+import           Debug.Trace
+import           Text.Read
+import           LMemcache.Commands
+import           LMemcache.Line.Base
+
+data TextProtocol = TextProtocol
+
+instance Protocol TextProtocol where
+  parser = parseCommand
+  find_start = undefined
+  marshaller = undefined
+
 
 -- TODO(jpg): attoparsec has fast implementations of isSpace and friends
 parseWord = A.takeWhile1 $ \c -> not $ isControl c || isSpace c
@@ -51,8 +60,8 @@ parseRetrievalCommandArgs = do
   newline
   return $ RetrievalCommandArgs keys
 
-parseCommand :: A.Parser Command
-parseCommand = do
+parseCommand :: TextProtocol -> A.Parser Command
+parseCommand p = do
   cmd <- parseWord
   A.space
   case unpack cmd of

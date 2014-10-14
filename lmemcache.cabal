@@ -68,6 +68,8 @@ executable lmemcache
                      , network >= 2.4
                      , word8 >= 0.1
                      , containers >= 0.5
+                     , dlist >= 0.7
+                     , mtl >= 2.1
   
   -- Directories containing source files.
   -- hs-source-dirs:      
