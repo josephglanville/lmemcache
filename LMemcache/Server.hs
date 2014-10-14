@@ -1,4 +1,20 @@
 {-# LANGUAGE DeriveDataTypeable #-}
+{-
+Copyright (c) 2014 Joseph Glanville <jgp@jpd.id.au>
+                   Duncan Burke <duncankburke@gmail.com>
+
+This software may be modifid and distributed under the terms
+of the MIT license. See the LICENSE file for details.
+-}
+
+{- |
+   module      : LMemcache.Server
+   copyright   : (c) Joseph Glanville, Duncan Burke
+   license     : MIT
+
+   maintaner   : Joseph Glanville
+   stability   : experimental
+-}
 
 module LMemcache.Server (ServerArgs(..), server) where
 
