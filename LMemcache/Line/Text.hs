@@ -15,7 +15,7 @@ of the MIT license. See the LICENSE file for details.
    stability   : experimental
 -}
 
-module LMemcache.Protocol (parseCommand) where
+module LMemcache.Protocol.Text (parseCommand) where
 
 import LMemcache.Commands
 import qualified Data.Attoparsec.ByteString.Char8 as A
@@ -25,6 +25,13 @@ import Control.Applicative
 import Data.Char8
 import Debug.Trace
 import Text.Read
+
+data TextProtocol = TextProtocol
+
+instance Protocol TextProtocol where
+  parser = parseCommand
+  marshaller = undefined
+
 
 -- TODO(jpg): attoparsec has fast implementations of isSpace and friends
 parseWord = A.takeWhile1 $ \c -> not $ isControl c || isSpace c
