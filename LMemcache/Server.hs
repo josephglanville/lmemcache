@@ -12,7 +12,7 @@ of the MIT license. See the LICENSE file for details.
    copyright   : (c) Joseph Glanville, Duncan Burke
    license     : MIT
 
-   maintaner   : Joseph Glanville
+   maintainer  : Joseph Glanville
    stability   : experimental
 -}
 

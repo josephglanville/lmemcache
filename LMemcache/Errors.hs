@@ -11,7 +11,7 @@ of the MIT license. See the LICENSE file for details.
    copyright   : (c) Joseph Glanville, Duncan Burke
    license     : MIT
 
-   maintaner   : jpg@jpg.id.au
+   maintainer  : jpg@jpg.id.au
    stability   : experimental
 -}
 
