@@ -17,10 +17,10 @@ of the MIT license. See the LICENSE file for details.
 
 module LMemcache.Storage (Store, StoreState(..), newStore, testStore) where
 
-import Data.ByteString.Char8
-import LMemcache.Commands
-import qualified Data.Map as M
-import Control.Concurrent
+import           Control.Concurrent
+import           Data.ByteString.Char8
+import qualified Data.Map              as M
+import           LMemcache.Commands
 
 type Store = M.Map Key Value
 

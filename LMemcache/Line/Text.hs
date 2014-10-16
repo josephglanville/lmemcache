@@ -15,16 +15,16 @@ of the MIT license. See the LICENSE file for details.
    stability   : experimental
 -}
 
-module LMemcache.Protocol.Text (parseCommand) where
+module LMemcache.Line.Text (parseCommand) where
 
-import LMemcache.Commands
+import           Control.Applicative
 import qualified Data.Attoparsec.ByteString.Char8 as A
-import Data.ByteString.Char8 hiding (putStrLn)
-import Data.Word
-import Control.Applicative
-import Data.Char8
-import Debug.Trace
-import Text.Read
+import           Data.ByteString.Char8            hiding (putStrLn)
+import           Data.Char8
+import           Data.Word
+import           Debug.Trace
+import           LMemcache.Commands
+import           Text.Read
 
 data TextProtocol = TextProtocol
 

@@ -18,22 +18,22 @@ of the MIT license. See the LICENSE file for details.
 
 module LMemcache.Server (ServerArgs(..), server) where
 
-import LMemcache.Commands
-import LMemcache.Protocol
-import LMemcache.Parser
-import LMemcache.Storage
-import qualified Data.ByteString.Char8 as B8
-import Data.Typeable
-import Data.Data
-import Network.Socket hiding (send, recv)
-import Network.Socket.ByteString
-import Control.Concurrent (forkIO)
+import           Control.Applicative              hiding (empty)
+import           Control.Concurrent               (forkIO)
+import           Control.Concurrent
 import qualified Data.Attoparsec.ByteString.Char8 as A
-import Debug.Trace
-import Data.List
-import qualified Data.Map as M
-import Control.Applicative hiding (empty)
-import Control.Concurrent
+import qualified Data.ByteString.Char8            as B8
+import           Data.Data
+import           Data.List
+import qualified Data.Map                         as M
+import           Data.Typeable
+import           Debug.Trace
+import           LMemcache.Commands
+import           LMemcache.Line.Base
+import           LMemcache.Line.Text
+import           LMemcache.Storage
+import           Network.Socket                   hiding (recv, send)
+import           Network.Socket.ByteString
 
 data ServerArgs = ServerArgs { port :: Int } deriving (Show, Data, Typeable)
 

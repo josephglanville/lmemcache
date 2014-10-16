@@ -24,18 +24,18 @@ module LMemcache.Commands (
   RetrievalCommandArgs(..)
 ) where
 
-import Data.ByteString.Char8
-import Data.Word
-import Data.Typeable
+import           Data.ByteString.Char8
+import           Data.Typeable
+import           Data.Word
 
 type ExpTime = Int
 type StorageFlags = Word32
 type Key = ByteString
 type Value = ByteString
-data StorageCommandArgs = StorageCommandArgs { key :: Key,
-                                               flags :: StorageFlags,
+data StorageCommandArgs = StorageCommandArgs { key     :: Key,
+                                               flags   :: StorageFlags,
                                                exptime :: ExpTime,
-                                               bytes :: Int,
+                                               bytes   :: Int,
                                                noreply :: Bool } deriving (Show)
 
 data RetrievalCommandArgs = RetrievalCommandArgs { keys :: [ByteString] } deriving (Show)
