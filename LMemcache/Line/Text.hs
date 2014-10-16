@@ -23,13 +23,15 @@ import           Data.ByteString.Char8            hiding (putStrLn)
 import           Data.Char8
 import           Data.Word
 import           Debug.Trace
-import           LMemcache.Commands
 import           Text.Read
+import           LMemcache.Commands
+import           LMemcache.Line.Base
 
 data TextProtocol = TextProtocol
 
 instance Protocol TextProtocol where
   parser = parseCommand
+  find_start = undefined
   marshaller = undefined
 
 
@@ -58,8 +60,8 @@ parseRetrievalCommandArgs = do
   newline
   return $ RetrievalCommandArgs keys
 
-parseCommand :: A.Parser Command
-parseCommand = do
+parseCommand :: TextProtocol -> A.Parser Command
+parseCommand p = do
   cmd <- parseWord
   A.space
   case unpack cmd of
