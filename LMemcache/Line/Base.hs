@@ -20,13 +20,13 @@ data ParseState = Start |
                   Failed { rem     :: B8.ByteString,
                            message :: String }
 
-lineParser proto new s  = case s of
-                                Start -> lineParser_ [] $ A.parse p new
-                                Running res com -> lineParser_ com $ A.feed p res new
-                                Failed -> fail "handle your damn failure"
-                                where p = parser proto
+lineParser proto new s = case s of
+                              Start -> lineParser_ [] $ A.parse p new
+                              Running res com -> lineParser_ com $ A.feed (p res) new
+                              Failed rem msg -> Failed rem msg
+                              where p = parser proto
 
 lineParser_ :: [Command] -> A.Result Command -> ParseState
-lineParser_ com (A.Done rem res) = Running (A.parse rem) (com ++ res)
+lineParser_ com (A.Done rem res) = Running (A.parse rem) (com ++ [res])
 lineParser_ com (A.Fail rem t m) = Failed rem m
 lineParser_ com (A.Partial cont) = Running cont com
