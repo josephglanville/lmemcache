@@ -15,7 +15,7 @@ of the MIT license. See the LICENSE file for details.
    stability   : experimental
 -}
 
-module LMemcache.Line.Text (parseCommand) where
+module LMemcache.Line.Text (TextProtocol(TextProtocol), parseCommand) where
 
 import           Control.Applicative
 import qualified Data.Attoparsec.ByteString.Char8 as A

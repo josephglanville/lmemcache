@@ -15,7 +15,7 @@ of the MIT license. See the LICENSE file for details.
    stability   : experimental
 -}
 
-module LMemcache.Storage (Store, StoreState(..), newStore, testStore) where
+module LMemcache.Storage (Store, StoreState(..), newStore, testStore, storeLookup, storeInsert) where
 
 import           Control.Concurrent
 import           Data.ByteString.Char8
