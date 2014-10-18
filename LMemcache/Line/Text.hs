@@ -42,8 +42,17 @@ parseNumber = readMaybe <$> A.many1 A.digit
 
 newline = A.char '\r' >> A.char '\n'
 
-parseStorageCommandArgs :: A.Parser StorageCommandArgs
-parseStorageCommandArgs = do
+parseStdStoreCommand :: String -> A.Parser Command
+parseStdStoreCommand cmd = do
+  common <- parseStoreCommandArgs
+  noReply <- parseNoReply
+  newline
+  value <- parseValue (bytes common)
+  case cmd of
+    "set" -> return $ Set common noReply value
+
+parseStoreCommandArgs :: A.Parser StoreCommandArgs
+parseStoreCommandArgs = do
   key <- parseWord
   A.space
   Just flags <- parseNumber
@@ -51,9 +60,11 @@ parseStorageCommandArgs = do
   Just exptime <- parseNumber
   A.space
   Just bytes <- parseNumber
-  noreply <- A.option False $ A.string (pack " noreply") >> return True
-  newline
-  return $ StorageCommandArgs key flags exptime bytes noreply
+  return $ StoreCommandArgs key flags exptime bytes
+
+parseNoReply :: A.Parser NoReply
+parseNoReply = do
+  A.option False $ A.string (pack " noreply") >> return True
 
 parseRetrievalCommandArgs = do
   keys <- A.sepBy1 parseWord A.space
@@ -67,8 +78,7 @@ parseCommand p = do
   case unpack cmd of
     "get" -> Get <$> parseRetrievalCommandArgs
     "gets" -> Gets <$> parseRetrievalCommandArgs
-    "set" -> do storeargs <- parseStorageCommandArgs
-                Set storeargs <$> parseValue (bytes storeargs)
+    "set" -> parseStdStoreCommand "set"
     _ -> fail "Unknown command"
 
 parseValue :: Int -> A.Parser Value

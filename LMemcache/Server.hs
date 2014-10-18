@@ -91,5 +91,5 @@ applyCommands store cmds = do
           case out of
             Just v -> putStrLn $ show v
             Nothing -> putStrLn "Not found"
-      Set s d -> do
+      Set s n d -> do
         storeInsert store (key s) d

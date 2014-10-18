@@ -17,12 +17,13 @@ of the MIT license. See the LICENSE file for details.
 -}
 
 module LMemcache.Commands (
-  Command(Get, Gets, Set),
-  StorageFlags, ExpTime,
-  Key, Value,
-  StorageCommandArgs(..),
-  RetrievalCommandArgs(..),
-  CommandResult
+  Command(..),
+  Flags, ExpTime,
+  Key, Value, NoReply,
+  StoreCommandArgs(StoreCommandArgs),
+  RetrievalCommandArgs(RetrievalCommandArgs),
+  CommandResult,
+  bytes, key, keys
 ) where
 
 import           Data.ByteString.Char8
@@ -30,21 +31,33 @@ import           Data.Typeable
 import           Data.Word
 
 type ExpTime = Int
-type StorageFlags = Word32
+type Flags = Word32
 type Key = ByteString
 type Value = ByteString
-data StorageCommandArgs = StorageCommandArgs { key     :: Key,
-                                               flags   :: StorageFlags,
-                                               exptime :: ExpTime,
-                                               bytes   :: Int,
-                                               noreply :: Bool } deriving (Show)
+type Bytes = Int
+type Cas = Int
+type NoReply = Bool
+
+data StoreCommandArgs = StoreCommandArgs { key     :: Key,
+                                           flags   :: Flags,
+                                           exptime :: ExpTime,
+                                           bytes   :: Bytes } deriving (Show)
 
 data RetrievalCommandArgs = RetrievalCommandArgs { keys :: [ByteString] } deriving (Show)
 
-data Command = Set StorageCommandArgs Value | Get RetrievalCommandArgs | Gets RetrievalCommandArgs deriving (Show, Typeable)
+data Command = Set StoreCommandArgs NoReply Value |
+               Add StoreCommandArgs NoReply Value |
+               Replace StoreCommandArgs NoReply Value |
+               Append StoreCommandArgs NoReply Value |
+               Prepend StoreCommandArgs NoReply Value |
+               Cas StoreCommandArgs Cas NoReply Value |
+               Get RetrievalCommandArgs |
+               Gets RetrievalCommandArgs deriving (Show, Typeable)
+
+data RetrievedValue = RetrievedValue Key Flags Bytes Cas deriving (Show)
 
 data CommandResult = Stored | -- successful Set/Cas/Add/Replace
-                     Retrieved [Value] | -- successful Get/Gets or Inc/Dec
+                     Retrieved [RetrievedValue] | -- successful Get/Gets or Inc/Dec
                      Deleted | -- successful Delete
                      Touched | -- successful Touch
                      NotStored | -- failed Add/Replace
