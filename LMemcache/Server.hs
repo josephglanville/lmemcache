@@ -51,45 +51,55 @@ server svrargs = withSocketsDo $ do
 sockHandler :: StoreState -> Socket -> IO ()
 sockHandler store sock = do
   (sockh, _) <- accept sock
-  forkIO $ putStrLn "Client Connected!" >> receiveMessage store sockh Start
+  forkIO $ clientHandler store sockh
   sockHandler store sock
 
+-- Handles initial client connection
+clientHandler :: StoreState -> Socket -> IO ()
+clientHandler store sock = do
+  putStrLn "Client Connected!"
+  initialBuffer <- recv sock 512
+  receiveMessage store sock $ lineParser TextProtocol initialBuffer Start
+
+-- Loops until Client disconnects
 receiveMessage :: StoreState -> Socket -> ParseState -> IO ()
 receiveMessage store sock parseState = do
-  newState <- applyAll store parseState
-  msg <- recv sock 512
+  newState <- progressParser parseState -- parses all commands in the buffer
+  results <- applyCommands store newState -- applies all commands gets results
+  -- TODO send results to the client
+  msg <- recv sock 512 -- gets a new buffer
   if B8.null msg
   then putStrLn "Client disconnected!" >> sClose sock
   else receiveMessage store sock (lineParser TextProtocol msg newState)
 
-applyAll :: StoreState -> ParseState -> IO (ParseState)
-applyAll store (Running res cmds p) = do
-  -- TODO get store reponses and push them down socket
-  applyCommands store cmds
+-- Loops until parser returns Partial or Failed
+progressParser :: ParseState -> IO (ParseState)
+progressParser (Running res cmds p) = do
   case res of
     A.Done rem _ -> do
-      applyAll store $ lineParser TextProtocol rem Start
+      progressParser $ lineParser TextProtocol rem (Running res cmds p)
     A.Partial _ -> do
-      return $ Running res [] p
-
-applyAll store (Failed _ _) = do
+      return $ Running res cmds p
+progressParser (Failed _ _) = do
   putStrLn "Client sent bad command. :("
   return Start
 
-applyAll store (Start) = return Start
+-- Might be able to eliminate this
+applyCommands :: StoreState -> ParseState -> IO ()
+applyCommands store (Running _ cmds _ ) = do
+  forM_ cmds $ \c -> applyCommand store c
+applyCommands store (Start) = do
+  putStrLn "Parser restarted"
 
--- TODO refactor out the actual command processing
--- Probably need something like Maybe CommandResult to feed into the marshaller
-applyCommands :: StoreState -> [Command] -> IO ()
-applyCommands store cmds = do
-  forM_ cmds $ \c -> do
-    case c of
-      Get r -> do
-        forM_ (keys r) $ \k -> do
-          putStrLn $ show k
-          out <- storeLookup store k
-          case out of
-            Just v -> putStrLn $ show v
-            Nothing -> putStrLn "Not found"
-      Set s n d -> do
-        storeInsert store (key s) d
+applyCommand :: StoreState -> Command -> IO ()
+applyCommand store (Get r) = do
+  forM_ (keys r) $ \k -> do
+    putStrLn $ show k
+    out <- storeLookup store k
+    case out of
+      Just v -> putStrLn $ show v
+      Nothing -> putStrLn "Not Found"
+
+applyCommand store (Set s n d) = do
+  storeInsert store (key s) d
+  putStrLn "Stored"
