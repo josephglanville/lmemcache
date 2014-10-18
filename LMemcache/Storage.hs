@@ -15,7 +15,7 @@ of the MIT license. See the LICENSE file for details.
    stability   : experimental
 -}
 
-module LMemcache.Storage (Store, StoreState(..), newStore, testStore, storeLookup, storeInsert) where
+module LMemcache.Storage (Store, StoreState(..), newStore, storeLookup, storeInsert) where
 
 import           Control.Concurrent
 import           Data.ByteString.Char8
@@ -42,10 +42,3 @@ storeLookup (StoreState s) key = do
   store <- takeMVar s
   putMVar s store
   return (M.lookup key store)
-
-testStore :: IO ()
-testStore = do
-  s <- newStore
-  sequence_ [ storeInsert s (pack ("name" ++ show n)) (pack (show n)) | n <- [1..10000] ]
-  storeLookup s (pack "name999") >>= print
-  storeLookup s (pack "unknown") >>= print

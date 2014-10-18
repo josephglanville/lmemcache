@@ -78,6 +78,8 @@ applyAll store (Failed _ _) = do
 
 applyAll store (Start) = return Start
 
+-- TODO refactor out the actual command processing
+-- Probably need something like Maybe CommandResult to feed into the marshaller
 applyCommands :: StoreState -> [Command] -> IO ()
 applyCommands store cmds = do
   forM_ cmds $ \c -> do

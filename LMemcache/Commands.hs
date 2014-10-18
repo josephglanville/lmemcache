@@ -21,7 +21,8 @@ module LMemcache.Commands (
   StorageFlags, ExpTime,
   Key, Value,
   StorageCommandArgs(..),
-  RetrievalCommandArgs(..)
+  RetrievalCommandArgs(..),
+  CommandResult
 ) where
 
 import           Data.ByteString.Char8
@@ -41,3 +42,11 @@ data StorageCommandArgs = StorageCommandArgs { key     :: Key,
 data RetrievalCommandArgs = RetrievalCommandArgs { keys :: [ByteString] } deriving (Show)
 
 data Command = Set StorageCommandArgs Value | Get RetrievalCommandArgs | Gets RetrievalCommandArgs deriving (Show, Typeable)
+
+data CommandResult = Stored | -- successful Set/Cas/Add/Replace
+                     Retrieved [Value] | -- successful Get/Gets or Inc/Dec
+                     Deleted | -- successful Delete
+                     Touched | -- successful Touch
+                     NotStored | -- failed Add/Replace
+                     Exists | -- failed Cas because key modified since
+                     NotFound -- failed Cas/Inc/Dec/Touch because key not found

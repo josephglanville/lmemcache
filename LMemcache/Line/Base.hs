@@ -12,15 +12,13 @@ module LMemcache.Line.Base (
 import qualified Data.Attoparsec.ByteString.Char8 as A
 import qualified Data.ByteString.Char8            as B8
 import           LMemcache.Commands
-import           LMemcache.Responses
-
 import           Control.Monad.State
 import           Data.DList
 
 class Protocol a where
   parser :: a -> A.Parser Command
   find_start :: a -> B8.ByteString -> B8.ByteString
-  marshaller :: a -> CommandResponse -> B8.ByteString
+  marshaller :: a -> CommandResult -> B8.ByteString
 
 data ParseState = Start |
                   Running { parser_res :: A.Result Command,
