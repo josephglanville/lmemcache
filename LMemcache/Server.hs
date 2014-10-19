@@ -70,7 +70,13 @@ receiveMessage store sock parseState = do
   msg <- recv sock 512 -- gets a new buffer
   if B8.null msg
   then putStrLn "Client disconnected!" >> sClose sock
-  else receiveMessage store sock (lineParser TextProtocol msg newState)
+  else receiveMessage store sock $ lineParser TextProtocol msg (stripCmds newState)
+
+-- Strips cmds out of ParseState now they have been processed
+-- Should be a way to get rid of this
+stripCmds ::  ParseState -> ParseState
+stripCmds (Running r cmds i) = Running r [] i
+stripCmds (Start) = Start
 
 -- Loops until parser returns Partial or Failed
 progressParser :: ParseState -> IO (ParseState)
@@ -91,15 +97,39 @@ applyCommands store (Running _ cmds _ ) = do
 applyCommands store (Start) = do
   putStrLn "Parser restarted"
 
-applyCommand :: StoreState -> Command -> IO ()
-applyCommand store (Get r) = do
+fmtEntry :: Entry -> Key -> RetrievedValue
+fmtEntry (Entry f b v) k = (RetrievedValue k f b 0 v)
+
+getEntry :: StoreState -> Key -> Entry
+getEntry store k = do
+  out <- storeLookup store k
+  case out of
+    Just e -> e
+    Nothing -> (Entry 0 0 B8.empty)
+
+getEntries :: StoreState -> [Key] -> [Entry]
+getEntries store ks = ks fmap getEntry
+
+getValues :: StoreState -> RetrievalCommandArgs -> [Entry]
+getValues store r = do
+  entries <- getEntries store (keys r)
+  fmtEntry fmap entries
+
+getCommand :: StoreState -> RetrievalCommandArgs -> IO (CommandResult)
+getCommand store r = do
+  values <- getValues store r
   forM_ (keys r) $ \k -> do
-    putStrLn $ show k
     out <- storeLookup store k
     case out of
-      Just v -> putStrLn $ show v
-      Nothing -> putStrLn "Not Found"
+      Just (Entry f b v) -> return $ Retrieved [(RetrievedValue k f b 0 v)]
+      Nothing -> return NotFound
 
-applyCommand store (Set commonArgs noReply dataBlock) = do
-  storeInsert store (key commonArgs) (Entry (flags commonArgs) (bytes commonArgs) dataBlock)
-  putStrLn "Stored"
+setCommand :: StoreState -> StoreCommandArgs -> B8.ByteString -> IO (CommandResult)
+setCommand store (StoreCommandArgs k f e b) dataBlock = do
+  storeInsert store k (Entry f b dataBlock)
+  return Stored
+
+applyCommand :: StoreState -> Command -> IO (CommandResult)
+applyCommand store (Get r) = getCommand store r
+applyCommand store (Gets r) = getCommand store r
+applyCommand store (Set commonArgs noReply dataBlock) = setCommand store commonArgs dataBlock

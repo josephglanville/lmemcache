@@ -21,7 +21,7 @@ module LMemcache.Commands (
   Key, Value, NoReply, Flags, ExpTime, Bytes,
   StoreCommandArgs(StoreCommandArgs),
   RetrievalCommandArgs(RetrievalCommandArgs),
-  CommandResult,
+  CommandResult(..), RetrievedValue(..),
   bytes, key, keys, exptime, flags
 ) where
 
@@ -53,7 +53,9 @@ data Command = Set StoreCommandArgs NoReply Value |
                Get RetrievalCommandArgs |
                Gets RetrievalCommandArgs deriving (Show, Typeable)
 
-data RetrievedValue = RetrievedValue Key Flags Bytes Cas deriving (Show)
+-- May need to store the Cas value in the store
+-- This may also unify Entry and RetrievedValue
+data RetrievedValue = RetrievedValue Key Flags Bytes Cas Value deriving (Show)
 
 data CommandResult = Stored | -- successful Set/Cas/Add/Replace
                      Retrieved [RetrievedValue] | -- successful Get/Gets or Inc/Dec
