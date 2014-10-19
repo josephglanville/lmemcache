@@ -70,7 +70,12 @@ receiveMessage store sock parseState = do
   msg <- recv sock 512 -- gets a new buffer
   if B8.null msg
   then putStrLn "Client disconnected!" >> sClose sock
-  else receiveMessage store sock (lineParser TextProtocol msg newState)
+  else receiveMessage store sock $ lineParser TextProtocol msg (stripCmds newState)
+
+-- Strips cmds out of ParseState now they have been processed
+-- Should be a way to get rid of this
+stripCmds ::  ParseState -> ParseState
+stripCmds (Running r cmds i) = Running r [] i
 
 -- Loops until parser returns Partial or Failed
 progressParser :: ParseState -> IO (ParseState)
