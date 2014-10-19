@@ -15,14 +15,18 @@ of the MIT license. See the LICENSE file for details.
    stability   : experimental
 -}
 
-module LMemcache.Storage (Store, StoreState(..), newStore, storeLookup, storeInsert) where
+module LMemcache.Storage (
+Store, StoreState(..), Entry(Entry),
+newStore, storeLookup, storeInsert
+) where
 
 import           Control.Concurrent
 import           Data.ByteString.Char8
 import qualified Data.Map              as M
 import           LMemcache.Commands
 
-type Store = M.Map Key Value
+data Entry = Entry Flags Bytes Value deriving (Show)
+type Store = M.Map Key Entry
 
 newtype StoreState = StoreState (MVar Store)
 
@@ -31,13 +35,13 @@ newStore = do
  s <- newMVar M.empty
  return (StoreState s)
 
-storeInsert :: StoreState -> Key -> Value -> IO ()
-storeInsert (StoreState s) key value = do
+storeInsert :: StoreState -> Key -> Entry -> IO ()
+storeInsert (StoreState s) key entry = do
   store <- takeMVar s
-  putMVar s (M.insert key value store)
+  putMVar s (M.insert key entry store)
 
 
-storeLookup :: StoreState -> Key -> IO (Maybe Value)
+storeLookup :: StoreState -> Key -> IO (Maybe Entry)
 storeLookup (StoreState s) key = do
   store <- takeMVar s
   putMVar s store

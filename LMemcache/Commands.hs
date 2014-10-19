@@ -18,12 +18,11 @@ of the MIT license. See the LICENSE file for details.
 
 module LMemcache.Commands (
   Command(..),
-  Flags, ExpTime,
-  Key, Value, NoReply,
+  Key, Value, NoReply, Flags, ExpTime, Bytes,
   StoreCommandArgs(StoreCommandArgs),
   RetrievalCommandArgs(RetrievalCommandArgs),
   CommandResult,
-  bytes, key, keys
+  bytes, key, keys, exptime, flags
 ) where
 
 import           Data.ByteString.Char8

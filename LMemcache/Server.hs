@@ -100,6 +100,6 @@ applyCommand store (Get r) = do
       Just v -> putStrLn $ show v
       Nothing -> putStrLn "Not Found"
 
-applyCommand store (Set s n d) = do
-  storeInsert store (key s) d
+applyCommand store (Set commonArgs noReply dataBlock) = do
+  storeInsert store (key commonArgs) (Entry (flags commonArgs) (bytes commonArgs) dataBlock)
   putStrLn "Stored"
