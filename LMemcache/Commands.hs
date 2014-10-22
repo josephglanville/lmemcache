@@ -18,10 +18,11 @@ of the MIT license. See the LICENSE file for details.
 
 module LMemcache.Commands (
   Command(..),
+  CommandResult(..),
   Key, Value, NoReply, Flags, ExpTime, Bytes,
+  RetrievedValue(..),
   StoreCommandArgs(StoreCommandArgs),
   RetrievalCommandArgs(RetrievalCommandArgs),
-  CommandResult,
   bytes, key, keys, exptime, flags
 ) where
 
@@ -62,3 +63,4 @@ data CommandResult = Stored | -- successful Set/Cas/Add/Replace
                      NotStored | -- failed Add/Replace
                      Exists | -- failed Cas because key modified since
                      NotFound -- failed Cas/Inc/Dec/Touch because key not found
+                     deriving (Show)

@@ -36,6 +36,7 @@ import           Network.Socket                   hiding (recv, send)
 import           Network.Socket.ByteString
 
 data ServerArgs = ServerArgs { port :: Int } deriving (Show, Data, Typeable)
+data ServerState = ServerState Socket StoreState
 
 server :: ServerArgs -> IO ()
 server svrargs = withSocketsDo $ do
@@ -45,37 +46,49 @@ server svrargs = withSocketsDo $ do
   bindSocket sock $ SockAddrInet (fromIntegral $ port svrargs) 0
   listen sock 5
   store <- newStore
-  sockHandler store sock
+  sockHandler (ServerState sock store)
   sClose sock
 
-sockHandler :: StoreState -> Socket -> IO ()
-sockHandler store sock = do
+sockHandler :: ServerState -> IO ()
+sockHandler (ServerState sock store) = do
   (sockh, _) <- accept sock
-  forkIO $ clientHandler store sockh
-  sockHandler store sock
+  forkIO $ clientHandler (ServerState sockh store)
+  sockHandler (ServerState sock store)
 
 -- Handles initial client connection
-clientHandler :: StoreState -> Socket -> IO ()
-clientHandler store sock = do
+clientHandler :: ServerState -> IO ()
+clientHandler (ServerState sock store) = do
   putStrLn "Client Connected!"
   initialBuffer <- recv sock 512
-  receiveMessage store sock $ lineParser TextProtocol initialBuffer Start
+  receiveMessage (ServerState sock store) $ lineParser TextProtocol initialBuffer Start
 
 -- Loops until Client disconnects
-receiveMessage :: StoreState -> Socket -> ParseState -> IO ()
-receiveMessage store sock parseState = do
+receiveMessage :: ServerState -> ParseState -> IO ()
+receiveMessage (ServerState sock store) parseState = do
   newState <- progressParser parseState -- parses all commands in the buffer
-  results <- applyCommands store newState -- applies all commands gets results
+  processCommands (ServerState sock store) (commands newState)
+  -- results <- applyCommands store newState -- applies all commands gets results
   -- TODO send results to the client
   msg <- recv sock 512 -- gets a new buffer
   if B8.null msg
   then putStrLn "Client disconnected!" >> sClose sock
-  else receiveMessage store sock $ lineParser TextProtocol msg (stripCmds newState)
+  else receiveMessage (ServerState sock store) $ lineParser TextProtocol msg (stripCmds newState)
 
 -- Strips cmds out of ParseState now they have been processed
--- Should be a way to get rid of this
+--- Should be a way to get rid of this
 stripCmds ::  ParseState -> ParseState
 stripCmds (Running r cmds i) = Running r [] i
+
+
+processCommands :: ServerState -> [Command] -> IO ()
+processCommands _ [] = return ()
+processCommands (ServerState sock store) (cmd:cmds) = do
+  result <- applyCommand store cmd
+  putStrLn $ show result
+  -- magic to marshall and send on socket
+  processCommands (ServerState sock store) cmds
+
+-- processCommand :: Command -> IO (CommandResult)
 
 -- Loops until parser returns Partial or Failed
 progressParser :: ParseState -> IO (ParseState)
@@ -89,22 +102,13 @@ progressParser (Failed _ _) = do
   putStrLn "Client sent bad command. :("
   return Start
 
--- Might be able to eliminate this
-applyCommands :: StoreState -> ParseState -> IO ()
-applyCommands store (Running _ cmds _ ) = do
-  forM_ cmds $ \c -> applyCommand store c
-applyCommands store (Start) = do
-  putStrLn "Parser restarted"
-
-applyCommand :: StoreState -> Command -> IO ()
-applyCommand store (Get r) = do
-  forM_ (keys r) $ \k -> do
-    putStrLn $ show k
+applyCommand :: StoreState -> Command -> IO (CommandResult)
+applyCommand store (Get (RetrievalCommandArgs (k:_))) = do
+    -- for now only fetch one key
     out <- storeLookup store k
     case out of
-      Just v -> putStrLn $ show v
-      Nothing -> putStrLn "Not Found"
-
+      Just (Entry f b v) -> return (Retrieved [(RetrievedValue k f b 0)])
+      Nothing -> return NotFound
 applyCommand store (Set commonArgs noReply dataBlock) = do
   storeInsert store (key commonArgs) (Entry (flags commonArgs) (bytes commonArgs) dataBlock)
-  putStrLn "Stored"
+  return Stored
