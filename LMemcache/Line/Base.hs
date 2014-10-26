@@ -6,7 +6,6 @@ module LMemcache.Line.Base (
   find_start,
   marshaller,
   lineParser,
-  commands,
   ParseState(..)
 ) where
 
