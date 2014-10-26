@@ -100,7 +100,7 @@ progressParser (Running res cmds p) = do
       return $ Running res cmds p
 progressParser (Failed _ _) = do
   putStrLn "Client sent bad command. :("
-  return Start
+  return $ lineParser TextProtocol B8.empty Start
 
 applyCommand :: StoreState -> Command -> IO (CommandResult)
 applyCommand store (Get (RetrievalCommandArgs (k:_))) = do
